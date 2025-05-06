@@ -1,4 +1,4 @@
-use crate::{error::Result, types::events::Event};
+use crate::{error::Result, types::{config::Configuration, events::Event}};
 use reqwest::header;
 use tokio::sync::mpsc::Sender;
 
@@ -37,6 +37,7 @@ impl ClientBuilder {
     ///
     /// This method fails if the header cannot be created or the HTTP client
     /// cannot be initialized.
+    #[must_use]
     pub fn build(self) -> Result<Client> {
         let base_url = self.base_url
             .unwrap_or_else(|| ADDR.to_string());
@@ -128,5 +129,23 @@ impl Client {
             }
             skip_old = false;
         }
+    }
+
+    /// Returns the entire [`Configuration`](crate::types::config::Configuration)
+    ///
+    /// # Errors
+    ///
+    /// This method fails if the API cannot be reached, the server
+    /// answers with an error code or the JSON cannot be parsed.
+    #[must_use]
+    pub async fn get_configuration(&self) -> Result<Configuration> {
+        Ok(self
+            .client
+            .get(format!("{}/config", ADDR))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 }
