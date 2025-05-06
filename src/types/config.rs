@@ -334,5 +334,5 @@ pub struct Defaults {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Ignores {
-    lines: Vec<String>,
+    pub lines: Vec<String>,
 }
