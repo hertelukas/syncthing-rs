@@ -149,3 +149,30 @@ impl Client {
             .await?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use httpmock::prelude::*;
+
+    /// Simple ping to a running server should just return Ok(())
+    #[tokio::test]
+    async fn test_ping() {
+        let server = MockServer::start();
+
+        let ping_mock = server.mock(|when, then| {
+            when.method(GET).path("/system/ping");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(r#"{"ping": "pong"}"#);
+        });
+
+        let client = ClientBuilder::new("").base_url(server.base_url()).build().unwrap();
+
+        let result = client.ping().await;
+        ping_mock.assert();
+
+        assert!(result.is_ok());
+    }
+}
