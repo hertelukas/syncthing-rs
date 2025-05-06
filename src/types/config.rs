@@ -153,6 +153,21 @@ pub struct DeviceConfiguration {
     pub name: String,
     pub addresses: Vec<String>, // TODO parse as SocketAddr or "dynamic"
     pub compression: Compression,
+    pub cert_name: String,
+    pub introducer: bool,
+    pub skip_introduction_removals: bool,
+    pub introduced_by: String,
+    pub paused: bool,
+    pub allowed_networks: Vec<String>,
+    pub auto_accept_folders: bool,
+    pub max_send_kbps: i64,
+    pub max_recv_kbps: i64,
+    pub ignored_folders: Vec<ObservedFolder>,
+    pub max_request_ki_b: i64,
+    pub untrusted: bool,
+    #[serde(rename = "remoteGUIPort")]
+    pub remote_gui_port: i64,
+    pub num_connections: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -161,6 +176,14 @@ pub enum Compression {
     Metadata,
     Always,
     Never,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ObservedFolder {
+    time: chrono::DateTime<chrono::Utc>,
+    id: String,
+    label: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
