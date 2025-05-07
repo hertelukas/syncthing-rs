@@ -65,7 +65,7 @@ impl ClientBuilder {
 /// The Client has various configuration values to tweak, such as the
 /// URL which is set to `localhost:8384/rest` by default. To configure a `Client`,
 /// use `Client::builder()`.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Client {
     client: reqwest::Client,
     base_url: String,
