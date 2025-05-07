@@ -1,11 +1,9 @@
 use crate::{
     error::{Error, Result},
     types::{
-        config::{Configuration, DeviceConfiguration, FolderConfiguration},
-        events::Event,
+        cluster::{PendingDevices, PendingFolders}, config::{Configuration, DeviceConfiguration, FolderConfiguration}, events::Event
     },
 };
-use log::debug;
 use reqwest::{StatusCode, header};
 use tokio::sync::mpsc::Sender;
 
@@ -130,7 +128,7 @@ impl Client {
     /// does not require a valid `api_key`.
     #[must_use]
     pub async fn get_id(&self) -> Result<String> {
-        debug!("GET /noauth/health");
+        log::debug!("GET /noauth/health");
         Ok(self
             .client
             .get(format!("{}/noauth/health", self.base_url))
@@ -298,6 +296,76 @@ impl Client {
         } else {
             Ok(response.error_for_status()?.json().await?)
         }
+    }
+
+    /// Gets a list of all pending remote devices which have tried to connect but
+    /// are not in our configuration yet.
+    #[must_use]
+    pub async fn get_pending_devices(&self) -> Result<PendingDevices> {
+        log::debug!("GET /cluster/pending/devices");
+        Ok(self
+            .client
+            .get(format!("{}/cluster/pending/devices", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
+    /// Gets all folders which remote devices have offered to us, but are not yet shared
+    /// from our instance to them or are not present on our instance.
+    #[must_use]
+    pub async fn get_pending_folders(&self) -> Result<PendingFolders> {
+        log::debug!("GET /cluster/pending/folders");
+        Ok(self
+            .client
+            .get(format!("{}/cluster/pending/folders", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
+    /// Remove record about pending remote device with ID `device_id` which tried to connect.
+    ///
+    /// This is not permanent, use `ignore_device` instead.
+    #[must_use]
+    pub async fn delete_pending_device(&self, device_id: &str) -> Result<()> {
+        log::debug!("DELETE /cluster/pending/devices?device={device_id}");
+        self.client
+            .delete(format!(
+                "{}/cluster/pending/devices?device={}",
+                self.base_url, device_id
+            ))
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
+    /// Remove record about pending remote folder with ID `folder_id`. An optional `device_id`
+    /// can be passed as argument to only remove the pending remote from that device, otherwise
+    /// the folder will be removed as pending for all devices.
+    ///
+    /// This is not permanent, use `ignore_folder` instead.
+    #[must_use]
+    pub async fn delete_pending_folder(&self, folder_id: &str, device_id: Option<&str>) -> Result<()> {
+        let device_str = match device_id {
+            Some(device_id) => format!("?device={}", device_id),
+            None => format!("")
+        };
+        log::debug!("DELETE /clusterpending/folders?folder={folder_id}{device_str}");
+        self.client
+            .delete(format!(
+                "{}/cluster/pending/folders?folder={}{}", self.base_url, folder_id, device_str))
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
     }
 }
 
