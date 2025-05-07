@@ -1,7 +1,9 @@
 use crate::{
     error::{Error, Result},
     types::{
-        cluster::{PendingDevices, PendingFolders}, config::{Configuration, DeviceConfiguration, FolderConfiguration}, events::Event
+        cluster::{PendingDevices, PendingFolders},
+        config::{Configuration, DeviceConfiguration, FolderConfiguration},
+        events::Event,
     },
 };
 use reqwest::{StatusCode, header};
@@ -352,15 +354,21 @@ impl Client {
     ///
     /// This is not permanent, use `ignore_folder` instead.
     #[must_use]
-    pub async fn delete_pending_folder(&self, folder_id: &str, device_id: Option<&str>) -> Result<()> {
+    pub async fn delete_pending_folder(
+        &self,
+        folder_id: &str,
+        device_id: Option<&str>,
+    ) -> Result<()> {
         let device_str = match device_id {
             Some(device_id) => format!("?device={}", device_id),
-            None => format!("")
+            None => format!(""),
         };
         log::debug!("DELETE /clusterpending/folders?folder={folder_id}{device_str}");
         self.client
             .delete(format!(
-                "{}/cluster/pending/folders?folder={}{}", self.base_url, folder_id, device_str))
+                "{}/cluster/pending/folders?folder={}{}",
+                self.base_url, folder_id, device_str
+            ))
             .send()
             .await?
             .error_for_status()?;
