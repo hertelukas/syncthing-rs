@@ -93,6 +93,7 @@ impl Client {
     /// Returns `()` if the syncthing API can be reached.
     #[must_use]
     pub async fn ping(&self) -> Result<()> {
+        log::debug!("GET /ping");
         self.client
             .get(format!("{}/system/ping", self.base_url))
             .send()
@@ -110,6 +111,7 @@ impl Client {
     pub async fn get_events(&self, tx: Sender<Event>, mut skip_old: bool) -> Result<()> {
         let mut current_id = 0;
         loop {
+            log::debug!("GET /events");
             let events: Vec<Event> = self
                 .client
                 .get(format!("{}/events?since={}", self.base_url, current_id))
@@ -119,12 +121,14 @@ impl Client {
                 .json()
                 .await?;
 
+            log::debug!("received {} new events", events.len());
             for event in events {
                 current_id = event.id;
                 if !skip_old {
                     tx.send(event).await?;
                 }
             }
+            log::debug!("current event id is {current_id}");
             skip_old = false;
         }
     }
@@ -137,6 +141,7 @@ impl Client {
     /// answers with an error code or the JSON cannot be parsed.
     #[must_use]
     pub async fn get_configuration(&self) -> Result<Configuration> {
+        log::debug!("GET /config");
         Ok(self
             .client
             .get(format!("{}/config", ADDR))
