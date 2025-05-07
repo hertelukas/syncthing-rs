@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Represents an [Event](https://docs.syncthing.net/dev/events.html)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
     pub id: u64,
@@ -13,7 +13,7 @@ pub struct Event {
     pub ty: EventType,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 #[serde(tag = "type", content = "data")]
 pub enum EventType {
     ClusterConfigReceived {},
@@ -68,7 +68,7 @@ pub enum EventType {
     StateChanged {},
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum ConnectionType {
     #[serde(rename = "tcp-client")]
     TCPClient,
@@ -96,7 +96,7 @@ pub struct AddedPendingDeviceChanged {
 /// Information provided by the API if there is a pending device removed
 /// in a [`PendingDeviceChanged`](https://docs.syncthing.net/events/pendingdeviceschanged.html)
 /// event.
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct RemovedPendingDeviceChanged {
     #[serde(rename = "deviceID")]
     pub device_id: String,
@@ -120,7 +120,7 @@ pub struct AddedPendingFolderChanged {
 /// Information provided by the API if there is a pending folder removed
 /// in a [`PendingFoldersChanged`](https://docs.syncthing.net/events/pendingfolderschanged.html)
 /// event.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Eq, Clone)]
 pub struct RemovedPendingFolderChanged {
     /// A removed entry without `device_id`, means that the folder is
     /// no longer pending on any device.

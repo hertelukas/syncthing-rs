@@ -1,4 +1,7 @@
-use crate::{error::Result, types::{config::Configuration, events::Event}};
+use crate::{
+    error::Result,
+    types::{config::Configuration, events::Event},
+};
 use reqwest::header;
 use tokio::sync::mpsc::Sender;
 
@@ -20,7 +23,7 @@ impl ClientBuilder {
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
             base_url: None,
-            api_key: api_key.into()
+            api_key: api_key.into(),
         }
     }
 
@@ -30,7 +33,6 @@ impl ClientBuilder {
         self
     }
 
-
     /// Returns a `Client` that uses this `ClientBuilder` configuration.
     ///
     /// # Errors
@@ -39,8 +41,7 @@ impl ClientBuilder {
     /// cannot be initialized.
     #[must_use]
     pub fn build(self) -> Result<Client> {
-        let base_url = self.base_url
-            .unwrap_or_else(|| ADDR.to_string());
+        let base_url = self.base_url.unwrap_or_else(|| ADDR.to_string());
 
         let mut headers = header::HeaderMap::new();
         let mut api_key_header = header::HeaderValue::from_str(&self.api_key)?;
@@ -51,10 +52,7 @@ impl ClientBuilder {
             .default_headers(headers)
             .build()?;
 
-        Ok(Client {
-            client,
-            base_url
-        })
+        Ok(Client { client, base_url })
     }
 }
 
@@ -152,9 +150,12 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
+    use crate::types::events::EventType;
+
     use super::*;
 
     use httpmock::prelude::*;
+    use tokio::sync::mpsc;
 
     /// Simple ping to a running server should just return Ok(())
     #[tokio::test]
@@ -168,11 +169,61 @@ mod tests {
                 .body(r#"{"ping": "pong"}"#);
         });
 
-        let client = ClientBuilder::new("").base_url(server.base_url()).build().unwrap();
+        let client = ClientBuilder::new("")
+            .base_url(server.base_url())
+            .build()
+            .unwrap();
 
         let result = client.ping().await;
         ping_mock.assert();
 
         assert!(result.is_ok());
+    }
+
+    /// Simple test ensuring that a single event in the past is correctly
+    /// transmitted.
+    #[tokio::test]
+    async fn test_single_event() {
+        let server = MockServer::start();
+
+        let event_mock = server.mock(|when, then| {
+            when.method(GET).path("/events");
+            then.status(200)
+                .header("content-type", "application/json")
+                .body(
+                    r#"
+[
+  {
+    "id": 1,
+    "globalID": 1,
+    "time": "2025-05-07T17:05:44.514050967+02:00",
+    "type": "Starting",
+    "data": {
+      "home": "/home/user/.config/syncthing",
+      "myID": "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"
+    }
+  }
+]
+"#,
+                );
+        });
+
+        let client = ClientBuilder::new("")
+            .base_url(server.base_url())
+            .build()
+            .unwrap();
+
+        let (tx, mut rx) = mpsc::channel(1);
+
+        // Start transmitting events on a separate thread
+        tokio::spawn(async move {
+            let result = client.get_events(tx, false).await;
+            unreachable!("get_events should not have returned: {:?}", result);
+        });
+
+        let event = rx.recv().await;
+        event_mock.assert();
+        assert!(event.is_some());
+        assert_eq!(event.unwrap().ty, EventType::Starting {})
     }
 }
