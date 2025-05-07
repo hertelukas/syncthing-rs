@@ -1,9 +1,12 @@
 use crate::{
     error::{Error, Result},
-    types::{config::Configuration, events::Event},
+    types::{
+        config::{Configuration, DeviceConfiguration, FolderConfiguration},
+        events::Event,
+    },
 };
 use log::debug;
-use reqwest::header;
+use reqwest::{StatusCode, header};
 use tokio::sync::mpsc::Sender;
 
 const ADDR: &str = "http://localhost:8384/rest";
@@ -183,12 +186,118 @@ impl Client {
         log::debug!("GET /config");
         Ok(self
             .client
-            .get(format!("{}/config", ADDR))
+            .get(format!("{}/config", self.base_url))
             .send()
             .await?
             .error_for_status()?
             .json()
             .await?)
+    }
+
+    /// Posts a folder. If the folder already exists, it is replaced,
+    /// otherwise a new one is added.
+    ///
+    /// Use [`add_folder`](crate::client::Client::add_folder) if the operation
+    /// should fail if a folder with the same ID already exists.
+    #[must_use]
+    pub async fn post_folder(&self, folder: &FolderConfiguration) -> Result<()> {
+        log::debug!("POST /config/folders {:?}", folder);
+        self.client
+            .post(format!("{}/config/folders", self.base_url))
+            .json(folder)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
+    /// Adds a new folder. If the folder already exists, a
+    /// [`DuplicateFolderError`](crate::error::Error::DuplicateFolderError) is returned.
+    /// This requires an additional check against the API.
+    ///
+    /// Use [`post_folder`](crate::client::Client::post_folder) if the operation
+    /// should blindly set the folder.
+    #[must_use]
+    pub async fn add_folder(&self, folder: &FolderConfiguration) -> Result<()> {
+        match self.get_folder(&folder.id).await {
+            Ok(_) => return Err(Error::DuplicateFolderError),
+            Err(Error::UnknownFolderError) => (),
+            Err(e) => return Err(e),
+        }
+        self.post_folder(folder).await
+    }
+
+    /// Gets the configuration for the folder with the ID `folder_id`. Explicitly
+    /// returns a [`UnknownFolderError`](crate::error::Error::UnknownFolderError)
+    /// if no folder with `folder_id` exists.
+    #[must_use]
+    pub async fn get_folder(&self, folder_id: &str) -> Result<FolderConfiguration> {
+        log::debug!("GET /config/folders/{}", folder_id);
+        let response = self
+            .client
+            .get(format!("{}/config/folders/{}", self.base_url, folder_id))
+            .send()
+            .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            // TODO check that really the folder ID is causing that
+            Err(Error::UnknownFolderError)
+        } else {
+            Ok(response.error_for_status()?.json().await?)
+        }
+    }
+
+    /// Posts a device. If the device already exists, it is replaced,
+    /// otherwise a new one is added.
+    ///
+    /// Use [`add_device`](crate::client::Client::add_device) if the operation
+    /// should fail if a device with the same ID already exists.
+    #[must_use]
+    pub async fn post_device(&self, device: &DeviceConfiguration) -> Result<()> {
+        log::debug!("POST /config/devices {:?}", device);
+        self.client
+            .post(format!("{}/config/devices", self.base_url))
+            .json(device)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
+    /// Adds a new device. If the device already exists, a
+    /// [`DuplicateDeviceError`](crate::error::Error::DuplicateDeviceError) is returned.
+    /// This requires an additional check against the API.
+    ///
+    /// Use [`post_device`](crate::client::Client::post_device) if the operation
+    /// should blindly set the device.
+    #[must_use]
+    pub async fn add_device(&self, device: &DeviceConfiguration) -> Result<()> {
+        match self.get_device(&device.device_id).await {
+            Ok(_) => return Err(Error::DuplicateDeviceError),
+            Err(Error::UnknownDeviceError) => (),
+            Err(e) => return Err(e),
+        }
+        self.post_device(device).await
+    }
+
+    /// Gets the configuration for the device with the ID `device_id`.
+    #[must_use]
+    pub async fn get_device(&self, device_id: &str) -> Result<DeviceConfiguration> {
+        log::debug!("GET /config/devices/{}", device_id);
+        let response = self
+            .client
+            .get(format!("{}/config/devices/{}", self.base_url, device_id))
+            .send()
+            .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            // TODO check that really the device ID is causing that
+            Err(Error::UnknownDeviceError)
+        } else {
+            Ok(response.error_for_status()?.json().await?)
+        }
     }
 }
 

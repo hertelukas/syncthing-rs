@@ -17,6 +17,18 @@ pub enum Error {
 
     #[error("could not convert header to string")]
     HeaderParseError,
+
+    #[error("folder already in the configuration")]
+    DuplicateFolderError,
+
+    #[error("device already in the configuration")]
+    DuplicateDeviceError,
+
+    #[error("folder does not exist")]
+    UnknownFolderError,
+
+    #[error("device does not exist")]
+    UnknownDeviceError,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
