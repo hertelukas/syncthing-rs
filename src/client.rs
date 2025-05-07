@@ -1,7 +1,8 @@
 use crate::{
-    error::Result,
+    error::{Error, Result},
     types::{config::Configuration, events::Event},
 };
+use log::debug;
 use reqwest::header;
 use tokio::sync::mpsc::Sender;
 
@@ -91,9 +92,12 @@ impl Client {
     }
 
     /// Returns `()` if the syncthing API can be reached.
+    ///
+    /// Use [`health`](crate::client::Client::health) to do the same
+    /// without the need of a valid `api_key`.
     #[must_use]
     pub async fn ping(&self) -> Result<()> {
-        log::debug!("GET /ping");
+        log::debug!("GET /system/ping");
         self.client
             .get(format!("{}/system/ping", self.base_url))
             .send()
@@ -101,6 +105,41 @@ impl Client {
             .error_for_status()?;
 
         Ok(())
+    }
+
+    /// Returns `()` if the syncthing API can be reached.
+    ///
+    /// Use [`ping`](crate::client::Client::ping) to do the same
+    /// but with the requirement of a valid `api_key`.
+    #[must_use]
+    pub async fn health(&self) -> Result<()> {
+        log::debug!("GET /noauth/health");
+        self.client
+            .get(format!("{}/noauth/health", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
+    /// Returns the ID of the current device. This endpoint
+    /// does not require a valid `api_key`.
+    #[must_use]
+    pub async fn get_id(&self) -> Result<String> {
+        debug!("GET /noauth/health");
+        Ok(self
+            .client
+            .get(format!("{}/noauth/health", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .headers()
+            .get("X-Syncthing-Id")
+            .ok_or(Error::HeaderDeviceIDError)?
+            .to_str()
+            .map_err(|_| Error::HeaderParseError)?
+            .to_string())
     }
 
     /// Only returns if an error is encountered.

@@ -4,13 +4,19 @@
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    InvalidHeader(#[from] reqwest::header::InvalidHeaderValue),
+    InvalidHeaderError(#[from] reqwest::header::InvalidHeaderValue),
 
     #[error(transparent)]
-    Network(#[from] reqwest::Error),
+    NetworkError(#[from] reqwest::Error),
 
     #[error(transparent)]
     SendEventError(#[from] tokio::sync::mpsc::error::SendError<crate::types::events::Event>),
+
+    #[error("device ID was not set in response header")]
+    HeaderDeviceIDError,
+
+    #[error("could not convert header to string")]
+    HeaderParseError,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
