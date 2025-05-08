@@ -170,7 +170,7 @@ impl Client {
         }
     }
 
-    /// Returns the entire [`Configuration`](crate::types::config::Configuration)
+    /// Returns the entire [`Configuration`]
     ///
     /// # Errors
     ///
