@@ -10,7 +10,7 @@ pub enum Error {
     NetworkError(#[from] reqwest::Error),
 
     #[error(transparent)]
-    SendEventError(#[from] tokio::sync::mpsc::error::SendError<crate::types::events::Event>),
+    SendEventError(#[from] tokio::sync::broadcast::error::SendError<crate::types::events::Event>),
 
     #[error("device ID was not set in response header")]
     HeaderDeviceIDError,

@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use reqwest::{StatusCode, header};
-use tokio::sync::mpsc::Sender;
+use tokio::sync::broadcast::Sender;
 
 const ADDR: &str = "http://localhost:8384/rest";
 
@@ -167,7 +167,7 @@ impl Client {
             for event in events {
                 current_id = event.id;
                 if !skip_old {
-                    tx.send(event).await?;
+                    tx.send(event)?;
                 }
             }
             log::debug!("current event id is {current_id}");
@@ -384,7 +384,7 @@ mod tests {
     use super::*;
 
     use httpmock::prelude::*;
-    use tokio::sync::mpsc;
+    use tokio::sync::broadcast;
 
     /// Simple ping to a running server should just return Ok(())
     #[tokio::test]
@@ -442,7 +442,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let (tx, mut rx) = mpsc::channel(1);
+        let (tx, mut rx) = broadcast::channel(1);
 
         // Start transmitting events on a separate thread
         tokio::spawn(async move {
@@ -452,7 +452,7 @@ mod tests {
 
         let event = rx.recv().await;
         event_mock.assert();
-        assert!(event.is_some());
+        assert!(event.is_ok());
         assert_eq!(event.unwrap().ty, EventType::Starting {})
     }
 }
