@@ -43,7 +43,6 @@ impl ClientBuilder {
     ///
     /// This method fails if the header cannot be created or the HTTP client
     /// cannot be initialized.
-    #[must_use]
     pub fn build(self) -> Result<Client> {
         let base_url = self.base_url.unwrap_or_else(|| ADDR.to_string());
 
@@ -98,7 +97,6 @@ impl Client {
     ///
     /// Use [`health`](crate::client::Client::health) to do the same
     /// without the need of a valid `api_key`.
-    #[must_use]
     pub async fn ping(&self) -> Result<()> {
         log::debug!("GET /system/ping");
         self.client
@@ -114,7 +112,6 @@ impl Client {
     ///
     /// Use [`ping`](crate::client::Client::ping) to do the same
     /// but with the requirement of a valid `api_key`.
-    #[must_use]
     pub async fn health(&self) -> Result<()> {
         log::debug!("GET /noauth/health");
         self.client
@@ -128,7 +125,6 @@ impl Client {
 
     /// Returns the ID of the current device. This endpoint
     /// does not require a valid `api_key`.
-    #[must_use]
     pub async fn get_id(&self) -> Result<String> {
         log::debug!("GET /noauth/health");
         Ok(self
@@ -149,7 +145,6 @@ impl Client {
     /// Transmits every new [event](crate::types::events::Event) over `tx`.
     /// If `skip_old`, all events before the call to this function do not
     /// result in a transmission.
-    #[must_use]
     pub async fn get_events(&self, tx: Sender<Event>, mut skip_old: bool) -> Result<()> {
         let mut current_id = 0;
         loop {
@@ -181,7 +176,6 @@ impl Client {
     ///
     /// This method fails if the API cannot be reached, the server
     /// answers with an error code or the JSON cannot be parsed.
-    #[must_use]
     pub async fn get_configuration(&self) -> Result<Configuration> {
         log::debug!("GET /config");
         Ok(self
@@ -199,7 +193,6 @@ impl Client {
     ///
     /// Use [`add_folder`](crate::client::Client::add_folder) if the operation
     /// should fail if a folder with the same ID already exists.
-    #[must_use]
     pub async fn post_folder(&self, folder: &FolderConfiguration) -> Result<()> {
         log::debug!("POST /config/folders {:?}", folder);
         self.client
@@ -218,7 +211,6 @@ impl Client {
     ///
     /// Use [`post_folder`](crate::client::Client::post_folder) if the operation
     /// should blindly set the folder.
-    #[must_use]
     pub async fn add_folder(&self, folder: &FolderConfiguration) -> Result<()> {
         match self.get_folder(&folder.id).await {
             Ok(_) => return Err(Error::DuplicateFolderError),
@@ -231,7 +223,6 @@ impl Client {
     /// Gets the configuration for the folder with the ID `folder_id`. Explicitly
     /// returns a [`UnknownFolderError`](crate::error::Error::UnknownFolderError)
     /// if no folder with `folder_id` exists.
-    #[must_use]
     pub async fn get_folder(&self, folder_id: &str) -> Result<FolderConfiguration> {
         log::debug!("GET /config/folders/{}", folder_id);
         let response = self
@@ -253,7 +244,6 @@ impl Client {
     ///
     /// Use [`add_device`](crate::client::Client::add_device) if the operation
     /// should fail if a device with the same ID already exists.
-    #[must_use]
     pub async fn post_device(&self, device: &DeviceConfiguration) -> Result<()> {
         log::debug!("POST /config/devices {:?}", device);
         self.client
@@ -272,7 +262,6 @@ impl Client {
     ///
     /// Use [`post_device`](crate::client::Client::post_device) if the operation
     /// should blindly set the device.
-    #[must_use]
     pub async fn add_device(&self, device: &DeviceConfiguration) -> Result<()> {
         match self.get_device(&device.device_id).await {
             Ok(_) => return Err(Error::DuplicateDeviceError),
@@ -283,7 +272,6 @@ impl Client {
     }
 
     /// Gets the configuration for the device with the ID `device_id`.
-    #[must_use]
     pub async fn get_device(&self, device_id: &str) -> Result<DeviceConfiguration> {
         log::debug!("GET /config/devices/{}", device_id);
         let response = self
@@ -302,7 +290,6 @@ impl Client {
 
     /// Gets a list of all pending remote devices which have tried to connect but
     /// are not in our configuration yet.
-    #[must_use]
     pub async fn get_pending_devices(&self) -> Result<PendingDevices> {
         log::debug!("GET /cluster/pending/devices");
         Ok(self
@@ -317,7 +304,6 @@ impl Client {
 
     /// Gets all folders which remote devices have offered to us, but are not yet shared
     /// from our instance to them or are not present on our instance.
-    #[must_use]
     pub async fn get_pending_folders(&self) -> Result<PendingFolders> {
         log::debug!("GET /cluster/pending/folders");
         Ok(self
@@ -333,7 +319,6 @@ impl Client {
     /// Remove record about pending remote device with ID `device_id` which tried to connect.
     ///
     /// This is not permanent, use `ignore_device` instead.
-    #[must_use]
     pub async fn delete_pending_device(&self, device_id: &str) -> Result<()> {
         log::debug!("DELETE /cluster/pending/devices?device={device_id}");
         self.client
@@ -353,7 +338,6 @@ impl Client {
     /// the folder will be removed as pending for all devices.
     ///
     /// This is not permanent, use `ignore_folder` instead.
-    #[must_use]
     pub async fn delete_pending_folder(
         &self,
         folder_id: &str,
@@ -361,7 +345,7 @@ impl Client {
     ) -> Result<()> {
         let device_str = match device_id {
             Some(device_id) => format!("?device={}", device_id),
-            None => format!(""),
+            None => String::new(),
         };
         log::debug!("DELETE /clusterpending/folders?folder={folder_id}{device_str}");
         self.client

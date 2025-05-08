@@ -9,8 +9,8 @@ pub enum Error {
     #[error(transparent)]
     NetworkError(#[from] reqwest::Error),
 
-    #[error(transparent)]
-    SendEventError(#[from] tokio::sync::broadcast::error::SendError<crate::types::events::Event>),
+    #[error("failed to send event (no receivers)")]
+    SendEventError,
 
     #[error("device ID was not set in response header")]
     HeaderDeviceIDError,
@@ -29,6 +29,12 @@ pub enum Error {
 
     #[error("device does not exist")]
     UnknownDeviceError,
+}
+
+impl From<tokio::sync::broadcast::error::SendError<crate::types::events::Event>> for Error {
+    fn from(_: tokio::sync::broadcast::error::SendError<crate::types::events::Event>) -> Self {
+        Self::SendEventError
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
