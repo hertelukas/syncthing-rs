@@ -5,7 +5,6 @@
 > [!WARNING]
 > This is an incomplete wrapper for the [Syncthing REST API](https://docs.syncthing.net/dev/rest.html), under active development.  
 > I'm not aiming to support the full API — just the parts I need for my own projects.
-> Contributions are welcome!
 
 > [!NOTE]
 > - Not affiliated with the Syncthing Foundation.
