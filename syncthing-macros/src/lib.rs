@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-fn is_required(attrs: &Vec<syn::Attribute>) -> bool {
+fn is_required(attrs: &[syn::Attribute]) -> bool {
     attrs.iter().any(|attr| attr.path().is_ident("required"))
 }
 
@@ -22,12 +22,12 @@ pub fn derive(input: TokenStream) -> TokenStream {
         unimplemented!()
     };
 
-    let new_fields = fields.clone().filter_map(|field| {
+    let new_fields = fields.clone().map(|field| {
         let name = &field.ident;
         if !is_required(&field.attrs) {
-            Some(quote! {#name: std::option::Option::None})
+            quote! {#name: std::option::Option::None}
         } else {
-            Some(quote! {#name})
+            quote! {#name}
         }
     });
 
