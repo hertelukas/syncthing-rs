@@ -1,0 +1,10 @@
+[workspace]
+
+[[syncthing-rs]]
+name = "syncthing-rs"
+git_release_enable = true
+
+[[syncthing-macros]]
+name = "syncthing-macros"
+changelog_path = "syncthing-macros/CHANGELOG.md"
+git_release_enable = false
