@@ -1,21 +1,6 @@
-[package]
-name = "syncthing-rs"
-version = "0.1.0-alpha.0"
-edition = "2024"
-license = "MIT OR Apache-2.0"
-description = "Rust wrapper around the Syncthing API"
-repository = "https://github.com/hertelukas/syncthing-rs"
-readme = "README.md"
-keywords = ["syncthing", "rest", "http", "async"]
-
-[dependencies]
-chrono = { version = "0.4.41", features = ["serde"] }
-log = "0.4.27"
-reqwest = { version = "0.12.15", features = ["json"] }
-serde = { version = "1.0.219", features = ["derive"] }
-syncthing-macros = { path = "./syncthing-macros" }
-thiserror = "2.0.12"
-tokio = { version = "1.44.2", features = ["full"] }
-
-[dev-dependencies]
-httpmock = "0.7.0"
+[workspace]
+resolver = "2"
+members = [
+  "syncthing-rs",
+  "syncthing-macros"
+]

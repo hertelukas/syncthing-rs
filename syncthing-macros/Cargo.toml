@@ -1,10 +1,14 @@
-[lib]
-proc-macro = true
-
 [package]
 name = "syncthing-macros"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "syncthing-rs's macros."
+repository = "https://github.com/hertelukas/syncthing-rs"
+readme = "README.md"
+
+[lib]
+proc-macro = true
 
 [dependencies]
 quote = "1.0.39"
