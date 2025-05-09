@@ -2,7 +2,11 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::DeriveInput;
 
-#[proc_macro_derive(New)]
+fn is_required(attrs: &Vec<syn::Attribute>) -> bool {
+    attrs.iter().any(|attr| attr.path().is_ident("required"))
+}
+
+#[proc_macro_derive(New, attributes(required))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
     let ident = &input.ident;
@@ -18,15 +22,33 @@ pub fn derive(input: TokenStream) -> TokenStream {
         unimplemented!()
     };
 
-    let none_fields = fields.clone().map(|field| {
+    let new_fields = fields.clone().filter_map(|field| {
         let name = &field.ident;
-        quote! {#name: None}
+        if !is_required(&field.attrs) {
+            Some(quote! {#name: std::option::Option::None})
+        } else {
+            Some(quote! {#name})
+        }
+    });
+
+    let required_args = fields.clone().filter_map(|field| {
+        if is_required(&field.attrs) {
+            let name = &field.ident;
+            let ty = &field.ty;
+            Some(quote! {#name: #ty})
+        } else {
+            None
+        }
     });
 
     let options = fields.clone().map(|field| {
         let name = &field.ident;
         let ty = &field.ty;
-        quote! { #name: std::option::Option<#ty>}
+        if !is_required(&field.attrs) {
+            quote! { #name: std::option::Option<#ty>}
+        } else {
+            quote! {#name: #ty}
+        }
     });
 
     let funcs = fields.clone().map(|field| {
@@ -35,21 +57,29 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let ty = &field.ty;
         // TODO not sure if thats ideal -> we will only have references
         // to the object if chained.
-        quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
-            self.#name = std::option::Option::Some(#name);
-            self
-        }}
+        if !is_required(&field.attrs) {
+            quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
+                self.#name = std::option::Option::Some(#name);
+                self
+            }}
+        } else {
+            quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
+                self.#name = #name;
+                self
+            }}
+        }
     });
 
     let expanded = quote! {
+        #[derive(serde::Serialize)]
         pub struct #builder_ident {
             #(#options),*
         }
 
         impl #builder_ident {
-            pub fn new() -> Self {
+            pub fn new(#(#required_args),*) -> Self {
                 Self {
-                    #(#none_fields),*
+                    #(#new_fields),*
                 }
             }
 
@@ -69,5 +99,6 @@ mod tests {
         t.pass("tests/ui/02-create-new.rs");
         t.pass("tests/ui/03-setter.rs");
         t.pass("tests/ui/04-chained.rs");
+        t.pass("tests/ui/05-required.rs");
     }
 }

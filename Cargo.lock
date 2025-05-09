@@ -1847,6 +1847,7 @@ version = "0.1.0-alpha.0"
 dependencies = [
  "proc-macro2",
  "quote",
+ "serde",
  "syn 2.0.101",
  "trybuild",
 ]
