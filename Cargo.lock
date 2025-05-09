@@ -1847,6 +1847,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "syncthing-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
 name = "syncthing-rs"
 version = "0.1.0-alpha.0"
 dependencies = [
@@ -1855,6 +1864,7 @@ dependencies = [
  "log",
  "reqwest",
  "serde",
+ "syncthing-macros",
  "thiserror 2.0.12",
  "tokio",
 ]

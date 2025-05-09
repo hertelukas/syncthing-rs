@@ -1,0 +1,16 @@
+[lib]
+proc-macro = true
+
+[package]
+name = "syncthing-macros"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+quote = "1.0.39"
+syn = { version = "2.0.99", features = ["full", "visit-mut", "parsing", "extra-traits"] }
+proc-macro2 = "1.0"
+
+
+[dev-dependencies]
+trybuild = "1.0.104"
