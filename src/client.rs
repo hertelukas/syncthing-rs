@@ -359,6 +359,34 @@ impl Client {
 
         Ok(())
     }
+
+    /// Returns a template device configuration with all default values,
+    /// which only requires a unique device ID to be instantiated.
+    pub async fn get_default_device(&self) -> Result<DeviceConfiguration> {
+        log::debug!("GET /config/defaults/device");
+        Ok(self
+            .client
+            .get(format!("{}/config/defaults/device", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
+    /// Returns a template folder configuration with all default values,
+    /// which only requires a unique folder ID to be instantiated.
+    pub async fn get_default_folder(&self) -> Result<FolderConfiguration> {
+        log::debug!("GET /config/defaults/folder");
+        Ok(self
+            .client
+            .get(format!("{}/config/defaults/folder", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
 }
 
 #[cfg(test)]
