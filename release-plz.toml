@@ -1,10 +1,10 @@
 [workspace]
 
-[[syncthing-rs]]
+[[package]]
 name = "syncthing-rs"
 git_release_enable = true
 
-[[syncthing-macros]]
+[[package]]
 name = "syncthing-macros"
 changelog_path = "syncthing-macros/CHANGELOG.md"
 git_release_enable = false
