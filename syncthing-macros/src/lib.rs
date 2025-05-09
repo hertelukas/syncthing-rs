@@ -29,6 +29,18 @@ pub fn derive(input: TokenStream) -> TokenStream {
         quote! { #name: std::option::Option<#ty>}
     });
 
+    let funcs = fields.clone().map(|field| {
+        let name = &field.ident;
+
+        let ty = &field.ty;
+        // TODO not sure if thats ideal -> we will only have references
+        // to the object if chained.
+        quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
+            self.#name = std::option::Option::Some(#name);
+            self
+        }}
+    });
+
     let expanded = quote! {
         pub struct #builder_ident {
             #(#options),*
@@ -40,6 +52,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     #(#none_fields),*
                 }
             }
+
+            #(#funcs)*
         }
     };
 
@@ -53,5 +67,7 @@ mod tests {
         let t = trybuild::TestCases::new();
         t.pass("tests/ui/01-parse.rs");
         t.pass("tests/ui/02-create-new.rs");
+        t.pass("tests/ui/03-setter.rs");
+        t.pass("tests/ui/04-chained.rs");
     }
 }
