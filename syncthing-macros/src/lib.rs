@@ -55,15 +55,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let name = &field.ident;
 
         let ty = &field.ty;
-        // TODO not sure if thats ideal -> we will only have references
-        // to the object if chained.
         if !is_required(&field.attrs) {
-            quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
+            quote! {fn #name(mut self, #name: #ty) -> Self {
                 self.#name = std::option::Option::Some(#name);
                 self
             }}
         } else {
-            quote! {fn #name(&mut self, #name: #ty) -> &mut Self {
+            quote! {fn #name(mut self, #name: #ty) -> Self {
                 self.#name = #name;
                 self
             }}

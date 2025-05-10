@@ -9,7 +9,9 @@ pub struct Device {
 
 fn main() {
     let mut device = NewDevice::new();
-    device.device_id("foo".to_string());
-    device.foo(12);
-    device.opt(Some(()));
+    device = device.device_id("foo".to_string());
+    device = device.foo(12);
+    device = device.opt(Some(()));
+
+    let _ = device;
 }
