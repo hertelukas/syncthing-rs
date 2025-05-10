@@ -45,7 +45,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let name = &field.ident;
         let ty = &field.ty;
         if !is_required(&field.attrs) {
-            quote! { #name: std::option::Option<#ty>}
+            quote! {
+                #[serde(skip_serializing_if = "Option::is_none")]
+                #name: std::option::Option<#ty>}
         } else {
             quote! {#name: #ty}
         }
@@ -98,5 +100,6 @@ mod tests {
         t.pass("tests/ui/03-setter.rs");
         t.pass("tests/ui/04-chained.rs");
         t.pass("tests/ui/05-required.rs");
+        t.pass("tests/ui/06-skip-unset.rs");
     }
 }

@@ -16,6 +16,6 @@ syn = { version = "2.0.99", features = ["full", "visit-mut", "parsing", "extra-t
 proc-macro2 = "1.0"
 serde = { version = "1.0.219", features = ["derive"] }
 
-
 [dev-dependencies]
 trybuild = "1.0.104"
+serde_json = { version = "1.0" }
