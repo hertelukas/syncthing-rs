@@ -30,7 +30,7 @@ pub struct FolderConfiguration {
     pub id: String,
     pub label: String,
     pub filesystem_type: FilesystemType,
-    /// Is mandatory according to the docs, but defaults to ~ in practice.
+    #[required]
     pub path: String,
     #[serde(rename = "type")]
     pub folder_type: FolderType,

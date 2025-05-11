@@ -412,6 +412,9 @@ mod tests {
 
     use rstest::*;
 
+    // Example device id from the docs
+    const DEVICE_ID: &str = "MFZWI3D-BONSGYC-YLTMRWG-C43ENR5-QXGZDMM-FZWI3DP-BONSGYY-LTMRWAD";
+
     #[fixture]
     async fn syncthing_setup() -> (ContainerAsync<GenericImage>, Client) {
         let api_key = "foobar";
@@ -571,5 +574,233 @@ mod tests {
         let (_container, client) = syncthing_setup.await;
 
         client.ping().await.unwrap();
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_get_config(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        client
+            .get_configuration()
+            .await
+            .expect("could not get config");
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_post_folder(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder = NewFolderConfiguration::new(folder_id.to_string(), path.to_string());
+
+        client
+            .post_folder(folder)
+            .await
+            .expect("could not post folder");
+
+        let api_folder = client
+            .get_folder(folder_id)
+            .await
+            .expect("could not get folder");
+
+        assert_eq!(&api_folder.id, folder_id);
+        assert_eq!(&api_folder.path, path);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_add_folder(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder = NewFolderConfiguration::new(folder_id.to_string(), path.to_string());
+
+        client
+            .add_folder(folder)
+            .await
+            .expect("could not add folder");
+
+        let api_folder = client
+            .get_folder(folder_id)
+            .await
+            .expect("could not get folder");
+
+        assert_eq!(&api_folder.id, folder_id);
+        assert_eq!(&api_folder.path, path);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    #[should_panic(expected = "DuplicateFolderError")]
+    async fn container_test_add_folder_twice_panic(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder = NewFolderConfiguration::new(folder_id.to_string(), path.to_string());
+
+        client
+            .add_folder(folder)
+            .await
+            .expect("could not add folder");
+
+        // "Accidentally" overwrite our folder
+        let duplicate_path = "/usr";
+        let duplicate_folder =
+            NewFolderConfiguration::new(folder_id.to_string(), duplicate_path.to_string());
+
+        client
+            .add_folder(duplicate_folder)
+            .await
+            .expect("could not add folder")
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_post_folder_twice(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder = NewFolderConfiguration::new(folder_id.to_string(), path.to_string());
+
+        client
+            .add_folder(folder)
+            .await
+            .expect("could not add folder");
+
+        // "Accidentally" overwrite our folder
+        let duplicate_path = "/usr";
+        let duplicate_folder =
+            NewFolderConfiguration::new(folder_id.to_string(), duplicate_path.to_string());
+
+        client
+            .post_folder(duplicate_folder)
+            .await
+            .expect("could not post folder");
+
+        let api_folder = client
+            .get_folder(folder_id)
+            .await
+            .expect("could not get folder");
+
+        assert_eq!(&api_folder.id, folder_id);
+        assert_eq!(&api_folder.path, duplicate_path);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_post_device(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        let device = NewDeviceConfiguration::new(DEVICE_ID.to_string());
+
+        client
+            .post_device(device)
+            .await
+            .expect("could not post device");
+
+        let api_device = client
+            .get_device(DEVICE_ID)
+            .await
+            .expect("could not get device");
+
+        assert_eq!(&api_device.device_id, DEVICE_ID);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_add_device(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        let device = NewDeviceConfiguration::new(DEVICE_ID.to_string());
+
+        client
+            .add_device(device)
+            .await
+            .expect("could not add device");
+
+        let api_device = client
+            .get_device(DEVICE_ID)
+            .await
+            .expect("could not get device");
+
+        assert_eq!(&api_device.device_id, DEVICE_ID);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    #[should_panic(expected = "DuplicateDeviceError")]
+    async fn container_test_add_device_twice_panic(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        let device = NewDeviceConfiguration::new(DEVICE_ID.to_string());
+
+        client
+            .add_device(device)
+            .await
+            .expect("could not add device");
+
+        // "Accidentally" overwrite our device
+        let duplicate_device = NewDeviceConfiguration::new(DEVICE_ID.to_string());
+
+        client
+            .add_device(duplicate_device)
+            .await
+            .expect("could not add device")
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_post_device_twice(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let name = "original";
+
+        let device = NewDeviceConfiguration::new(DEVICE_ID.to_string()).name(name.to_string());
+
+        client
+            .add_device(device)
+            .await
+            .expect("could not add device");
+
+        // "Accidentally" overwrite our device
+        let duplicate_name = "duplicate";
+        let duplicate_device =
+            NewDeviceConfiguration::new(DEVICE_ID.to_string()).name(duplicate_name.to_string());
+
+        client
+            .post_device(duplicate_device)
+            .await
+            .expect("could not post device");
+
+        let api_device = client
+            .get_device(DEVICE_ID)
+            .await
+            .expect("could not get device");
+
+        assert_eq!(&api_device.device_id, DEVICE_ID);
+        assert_eq!(&api_device.name, duplicate_name);
     }
 }
