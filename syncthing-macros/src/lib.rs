@@ -35,6 +35,35 @@ fn get_rename(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> {
     None
 }
 
+fn get_rename_all(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> {
+    for attr in attrs {
+        // Only interested in attributes that look like #[serde(...)]
+        if attr.path().is_ident("serde") {
+            if let syn::Attribute {
+                meta: syn::Meta::List(syn::MetaList { tokens, .. }),
+                ..
+            } = attr
+            {
+                let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
+                if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first() {
+                    if *ident == "rename_all" {
+                        if let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2) {
+                            // Convert the literal into a string like "\"bar\""
+                            let value = name.to_string();
+
+                            // Parse that string back into a syn::Lit (which handles quotes properly)
+                            if let Ok(lit) = syn::parse_str::<syn::LitStr>(&value) {
+                                return Some(quote! { #[serde(rename_all = #lit)] });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
 #[proc_macro_derive(New, attributes(required))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
@@ -104,8 +133,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+    let rename_all = get_rename_all(&input.attrs);
+
     let expanded = quote! {
         #[derive(serde::Serialize)]
+        #rename_all
         pub struct #builder_ident {
             #(#options),*
         }
