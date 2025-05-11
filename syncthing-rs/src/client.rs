@@ -2,7 +2,10 @@ use crate::{
     error::{Error, Result},
     types::{
         cluster::{PendingDevices, PendingFolders},
-        config::{Configuration, DeviceConfiguration, FolderConfiguration},
+        config::{
+            Configuration, DeviceConfiguration, FolderConfiguration, NewDeviceConfiguration,
+            NewFolderConfiguration,
+        },
         events::Event,
     },
 };
@@ -193,11 +196,12 @@ impl Client {
     ///
     /// Use [`add_folder`](crate::client::Client::add_folder) if the operation
     /// should fail if a folder with the same ID already exists.
-    pub async fn post_folder(&self, folder: &FolderConfiguration) -> Result<()> {
+    pub async fn post_folder(&self, folder: impl Into<NewFolderConfiguration>) -> Result<()> {
+        let folder = folder.into();
         log::debug!("POST /config/folders {:?}", folder);
         self.client
             .post(format!("{}/config/folders", self.base_url))
-            .json(folder)
+            .json(&folder)
             .send()
             .await?
             .error_for_status()?;
@@ -211,8 +215,9 @@ impl Client {
     ///
     /// Use [`post_folder`](crate::client::Client::post_folder) if the operation
     /// should blindly set the folder.
-    pub async fn add_folder(&self, folder: &FolderConfiguration) -> Result<()> {
-        match self.get_folder(&folder.id).await {
+    pub async fn add_folder(&self, folder: impl Into<NewFolderConfiguration>) -> Result<()> {
+        let folder = folder.into();
+        match self.get_folder(folder.get_id()).await {
             Ok(_) => return Err(Error::DuplicateFolderError),
             Err(Error::UnknownFolderError) => (),
             Err(e) => return Err(e),
@@ -244,11 +249,12 @@ impl Client {
     ///
     /// Use [`add_device`](crate::client::Client::add_device) if the operation
     /// should fail if a device with the same ID already exists.
-    pub async fn post_device(&self, device: &DeviceConfiguration) -> Result<()> {
+    pub async fn post_device(&self, device: impl Into<NewDeviceConfiguration>) -> Result<()> {
+        let device = device.into();
         log::debug!("POST /config/devices {:?}", device);
         self.client
             .post(format!("{}/config/devices", self.base_url))
-            .json(device)
+            .json(&device)
             .send()
             .await?
             .error_for_status()?;
@@ -262,8 +268,9 @@ impl Client {
     ///
     /// Use [`post_device`](crate::client::Client::post_device) if the operation
     /// should blindly set the device.
-    pub async fn add_device(&self, device: &DeviceConfiguration) -> Result<()> {
-        match self.get_device(&device.device_id).await {
+    pub async fn add_device(&self, device: impl Into<NewDeviceConfiguration>) -> Result<()> {
+        let device = device.into();
+        match self.get_device(device.get_device_id()).await {
             Ok(_) => return Err(Error::DuplicateDeviceError),
             Err(Error::UnknownDeviceError) => (),
             Err(e) => return Err(e),
