@@ -403,7 +403,41 @@ mod tests {
     use super::*;
 
     use httpmock::prelude::*;
+    use testcontainers::{
+        ContainerAsync, GenericImage, ImageExt,
+        core::{ContainerPort::Tcp, WaitFor},
+        runners::AsyncRunner,
+    };
     use tokio::sync::broadcast;
+
+    use rstest::*;
+
+    #[fixture]
+    async fn syncthing_setup() -> (ContainerAsync<GenericImage>, Client) {
+        let api_key = "foobar";
+        let container = GenericImage::new("syncthing/syncthing", "latest")
+            .with_exposed_port(Tcp(8384))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .with_env_var("STGUIAPIKEY", api_key)
+            .start()
+            .await
+            .expect("failed to start syncthing container");
+
+        let host = container
+            .get_host()
+            .await
+            .expect("could not get syncthing host");
+        let port = container
+            .get_host_port_ipv4(8384)
+            .await
+            .expect("could not get syncthing port");
+
+        let url = format!("http://{host}:{port}/rest");
+
+        let client = ClientBuilder::new(api_key).base_url(url).build().unwrap();
+
+        (container, client)
+    }
 
     /// Simple ping to a running server should just return Ok(())
     #[tokio::test]
@@ -473,5 +507,69 @@ mod tests {
         event_mock.assert();
         assert!(event.is_ok());
         assert_eq!(event.unwrap().ty, EventType::Starting {})
+    }
+
+    #[tokio::test]
+    async fn container_test_health() {
+        // Create container by hand, so we don't know the API key. This is okay
+        // as the health endpoint should work anyway
+        let container = GenericImage::new("syncthing/syncthing", "latest")
+            .with_exposed_port(Tcp(8384))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .start()
+            .await
+            .expect("failed to start syncthing container");
+
+        let host = container
+            .get_host()
+            .await
+            .expect("could not get syncthing host");
+        let port = container
+            .get_host_port_ipv4(8384)
+            .await
+            .expect("could not get syncthing port");
+
+        let url = format!("http://{host}:{port}/rest");
+
+        let client = ClientBuilder::new("idk").base_url(url).build().unwrap();
+
+        client.health().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn container_test_id() {
+        // Create container by hand, so we don't know the API key. This is okay
+        // as the id endpoint should work anyway
+        let container = GenericImage::new("syncthing/syncthing", "latest")
+            .with_exposed_port(Tcp(8384))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .start()
+            .await
+            .expect("failed to start syncthing container");
+
+        let host = container
+            .get_host()
+            .await
+            .expect("could not get syncthing host");
+        let port = container
+            .get_host_port_ipv4(8384)
+            .await
+            .expect("could not get syncthing port");
+
+        let url = format!("http://{host}:{port}/rest");
+
+        let client = ClientBuilder::new("idk").base_url(url).build().unwrap();
+
+        client.get_id().await.unwrap();
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_ping(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        client.ping().await.unwrap();
     }
 }
