@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use syncthing_macros::New;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Size {
@@ -22,12 +23,14 @@ pub struct Configuration {
     pub defaults: Defaults,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, New)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderConfiguration {
+    #[required]
     pub id: String,
     pub label: String,
     pub filesystem_type: FilesystemType,
+    /// Is mandatory according to the docs, but defaults to ~ in practice.
     pub path: String,
     #[serde(rename = "type")]
     pub folder_type: FolderType,
@@ -145,12 +148,15 @@ pub struct XattrFilter {
     pub max_total_size: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, New)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceConfiguration {
+    #[required]
     #[serde(rename = "deviceID")]
     pub device_id: String,
     pub name: String,
+    // According to the docs "at least one is required",
+    // however it does not seem to get enforced.
     pub addresses: Vec<String>, // TODO parse as SocketAddr or "dynamic"
     pub compression: Compression,
     pub cert_name: String,
