@@ -16,8 +16,8 @@ fn get_rename(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> {
             } = attr
             {
                 let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
-                if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.get(0) {
-                    if ident.to_string() == "rename" {
+                if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first() {
+                    if *ident == "rename" {
                         if let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2) {
                             // Convert the literal into a string like "\"bar\""
                             let value = name.to_string();
