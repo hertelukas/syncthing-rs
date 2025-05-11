@@ -118,18 +118,35 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     let funcs = fields.clone().map(|field| {
         let name = &field.ident;
+        if let Some(name) = name {
+            let getter = format!("get_{}", name);
+            let getter = proc_macro2::Ident::new(&getter, name.span());
+            let ty = &field.ty;
+            if !is_required(&field.attrs) {
+                quote! {
+                    pub fn #name(mut self, #name: #ty) -> Self {
+                        self.#name = std::option::Option::Some(#name);
+                        self
+                    }
+                        pub fn #getter(&self) -> &std::option::Option<#ty> {
+                            &self.#name
+                        }
+                }
+            } else {
+                quote! {
+                    pub fn #name(mut self, #name: #ty) -> Self {
+                        self.#name = #name;
+                        self
+                    }
 
-        let ty = &field.ty;
-        if !is_required(&field.attrs) {
-            quote! {fn #name(mut self, #name: #ty) -> Self {
-                self.#name = std::option::Option::Some(#name);
-                self
-            }}
+                    pub fn #getter(&self) -> &#ty {
+                        &self.#name
+                    }
+                }
+            }
         } else {
-            quote! {fn #name(mut self, #name: #ty) -> Self {
-                self.#name = #name;
-                self
-            }}
+            // TODO raise error
+            quote! {}
         }
     });
 
@@ -145,7 +162,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let rename_all = get_rename_all(&input.attrs);
 
     let expanded = quote! {
-        #[derive(serde::Serialize)]
+        #[derive(Debug, serde::Serialize)]
         #rename_all
         pub struct #builder_ident {
             #(#options),*
