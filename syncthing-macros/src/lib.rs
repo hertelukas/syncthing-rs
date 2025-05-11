@@ -133,6 +133,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+    let from = fields.clone().map(|field| {
+        let name = &field.ident;
+        if !is_required(&field.attrs) {
+            quote! { #name: Some(value.#name) }
+        } else {
+            quote! { #name: value.#name }
+        }
+    });
+
     let rename_all = get_rename_all(&input.attrs);
 
     let expanded = quote! {
@@ -150,6 +159,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
 
             #(#funcs)*
+        }
+
+        impl From<#ident> for #builder_ident {
+            fn from(value: #ident) -> Self {
+                Self {
+                    #(#from),*
+                }
+            }
+
         }
     };
 
