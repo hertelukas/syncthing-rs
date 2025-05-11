@@ -80,7 +80,10 @@ pub fn derive(input: TokenStream) -> TokenStream {
             #[serde(skip_serializing_if = "Option::is_none")]
             #name: std::option::Option<#ty>}
         } else {
-            quote! {#name: #ty}
+            quote! {
+                #rename
+                #name: #ty
+            }
         }
     });
 
@@ -126,12 +129,6 @@ mod tests {
     #[test]
     fn test_name() {
         let t = trybuild::TestCases::new();
-        t.pass("tests/ui/01-parse.rs");
-        t.pass("tests/ui/02-create-new.rs");
-        t.pass("tests/ui/03-setter.rs");
-        t.pass("tests/ui/04-chained.rs");
-        t.pass("tests/ui/05-required.rs");
-        t.pass("tests/ui/06-skip-unset.rs");
-        t.pass("tests/ui/07-propagate-rename.rs");
+        t.pass("tests/ui/*.rs");
     }
 }
