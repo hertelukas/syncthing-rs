@@ -1,6 +1,8 @@
 //! Event types, as defined [here](https://docs.syncthing.net/dev/events.html)
 use serde::{Deserialize, Serialize};
 
+use super::config::NewDeviceConfiguration;
+
 /// Represents an [Event](https://docs.syncthing.net/dev/events.html)
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -128,4 +130,31 @@ pub struct RemovedPendingFolderChanged {
     pub device_id: Option<String>,
     #[serde(rename = "folderID")]
     pub folder_id: String,
+}
+
+impl From<AddedPendingDeviceChanged> for NewDeviceConfiguration {
+    fn from(value: AddedPendingDeviceChanged) -> Self {
+        Self::new(value.device_id).name(value.name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr};
+
+    use super::*;
+
+    #[test]
+    fn test_new_device() {
+        let added = AddedPendingDeviceChanged {
+            address: std::net::SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8384),
+            device_id: "foo".to_string(),
+            name: "bar".to_string(),
+        };
+
+        let new: NewDeviceConfiguration = added.into();
+
+        assert_eq!(new.get_device_id(), "foo");
+        assert_eq!(new.get_name(), &Some("bar".to_string()));
+    }
 }
