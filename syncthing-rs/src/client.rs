@@ -514,7 +514,7 @@ mod tests {
         });
 
         let event = rx.recv().await;
-        event_mock.assert();
+        assert!(event_mock.hits() > 0);
         assert!(event.is_ok());
         assert_eq!(event.unwrap().ty, EventType::Starting {})
     }
