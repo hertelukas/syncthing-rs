@@ -162,7 +162,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let rename_all = get_rename_all(&input.attrs);
 
     let expanded = quote! {
-        #[derive(Debug, serde::Serialize)]
+        #[derive(Clone, Debug, serde::Serialize)]
         #rename_all
         pub struct #builder_ident {
             #(#options),*
