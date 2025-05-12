@@ -853,11 +853,11 @@ mod tests {
         loop {
             let event = event_rx.recv().await.unwrap();
             match event.ty {
-                EventType::PendingDevicesChanged { ref added, .. } => {
-                    if let Some(added) = added {
-                        if added.len() > 0 {
-                            break;
-                        }
+                EventType::PendingDevicesChanged {
+                    added: Some(added), ..
+                } => {
+                    if !added.is_empty() {
+                        break;
                     }
                 }
                 // Skip other events
@@ -915,11 +915,11 @@ mod tests {
         loop {
             let event = event_rx.recv().await.unwrap();
             match event.ty {
-                EventType::PendingDevicesChanged { ref added, .. } => {
-                    if let Some(added) = added {
-                        if added.len() > 0 {
-                            break;
-                        }
+                EventType::PendingDevicesChanged {
+                    added: Some(added), ..
+                } => {
+                    if !added.is_empty() {
+                        break;
                     }
                 }
                 // Skip other events
@@ -943,11 +943,12 @@ mod tests {
         loop {
             let event = event_rx.recv().await.unwrap();
             match event.ty {
-                EventType::PendingDevicesChanged { ref removed, .. } => {
-                    if let Some(removed) = removed {
-                        if removed.len() > 0 {
-                            break;
-                        }
+                EventType::PendingDevicesChanged {
+                    removed: Some(removed),
+                    ..
+                } => {
+                    if !removed.is_empty() {
+                        break;
                     }
                 }
                 // Skip other events
