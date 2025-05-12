@@ -442,6 +442,13 @@ mod tests {
         (container, client)
     }
 
+    #[test]
+    fn test_new() {
+        let client = Client::new("foo");
+
+        assert_eq!(client.base_url, "http://localhost:8384/rest");
+    }
+
     /// Simple ping to a running server should just return Ok(())
     #[tokio::test]
     async fn test_ping() {
@@ -802,5 +809,185 @@ mod tests {
 
         assert_eq!(&api_device.device_id, DEVICE_ID);
         assert_eq!(&api_device.name, duplicate_name);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_pending_device(
+        #[future]
+        #[from(syncthing_setup)]
+        first: (ContainerAsync<GenericImage>, Client),
+        #[future]
+        #[from(syncthing_setup)]
+        second: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_first_container, first_client) = first.await;
+        let (_second_container, second_client) = second.await;
+
+        let first_id = first_client
+            .get_id()
+            .await
+            .expect("could not get id of first container");
+        let second_id = second_client
+            .get_id()
+            .await
+            .expect("could not get id of second container");
+
+        // First starts waiting for the event
+        let (event_tx, mut event_rx) = broadcast::channel(10);
+        let first_client_handle = first_client.clone();
+        tokio::spawn(async move {
+            first_client_handle
+                .get_events(event_tx, true)
+                .await
+                .unwrap();
+        });
+
+        // Add the first device to the second
+        second_client
+            .add_device(NewDeviceConfiguration::new(first_id))
+            .await
+            .expect("could not add device");
+
+        // Now wait until we get an added device event on the first container
+        loop {
+            let event = event_rx.recv().await.unwrap();
+            match event.ty {
+                EventType::PendingDevicesChanged { ref added, .. } => {
+                    if let Some(added) = added {
+                        if added.len() > 0 {
+                            break;
+                        }
+                    }
+                }
+                // Skip other events
+                _ => {}
+            }
+        }
+
+        // Check that this device is the correct one
+        let pending = first_client
+            .get_pending_devices()
+            .await
+            .expect("could not get pending devices");
+        assert!(pending.devices.contains_key(&second_id));
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_delete_pending_device(
+        #[future]
+        #[from(syncthing_setup)]
+        first: (ContainerAsync<GenericImage>, Client),
+        #[future]
+        #[from(syncthing_setup)]
+        second: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_first_container, first_client) = first.await;
+        let (_second_container, second_client) = second.await;
+
+        let first_id = first_client
+            .get_id()
+            .await
+            .expect("could not get id of first container");
+        let second_id = second_client
+            .get_id()
+            .await
+            .expect("could not get id of second container");
+
+        // First starts waiting for the event
+        let (event_tx, mut event_rx) = broadcast::channel(10);
+        let first_client_handle = first_client.clone();
+        tokio::spawn(async move {
+            first_client_handle
+                .get_events(event_tx, true)
+                .await
+                .unwrap();
+        });
+
+        // Add the first device to the second
+        second_client
+            .add_device(NewDeviceConfiguration::new(first_id))
+            .await
+            .expect("could not add device");
+
+        // Now wait until we get an added device event on the first container
+        loop {
+            let event = event_rx.recv().await.unwrap();
+            match event.ty {
+                EventType::PendingDevicesChanged { ref added, .. } => {
+                    if let Some(added) = added {
+                        if added.len() > 0 {
+                            break;
+                        }
+                    }
+                }
+                // Skip other events
+                _ => {}
+            }
+        }
+
+        // Check that this device is the correct one
+        let pending = first_client
+            .get_pending_devices()
+            .await
+            .expect("could not get pending devices");
+        assert!(pending.devices.contains_key(&second_id));
+
+        first_client
+            .delete_pending_device(&second_id)
+            .await
+            .expect("could not delete pending device");
+
+        // Now wait until we get a removed device event in the first container
+        loop {
+            let event = event_rx.recv().await.unwrap();
+            match event.ty {
+                EventType::PendingDevicesChanged { ref removed, .. } => {
+                    if let Some(removed) = removed {
+                        if removed.len() > 0 {
+                            break;
+                        }
+                    }
+                }
+                // Skip other events
+                _ => {}
+            }
+        }
+
+        // Check that the device is no longer there
+        let pending = first_client
+            .get_pending_devices()
+            .await
+            .expect("could not get pending devices");
+        assert!(!pending.devices.contains_key(&second_id));
+        // There shouldn't be any pending device anymore
+        assert_eq!(pending.devices.len(), 0)
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_get_default_device(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        client
+            .get_default_device()
+            .await
+            .expect("could not get default device");
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_get_default_folder(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        client
+            .get_default_folder()
+            .await
+            .expect("could not get default folder");
     }
 }
