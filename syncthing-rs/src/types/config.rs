@@ -5,13 +5,13 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use syncthing_macros::New;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Size {
     pub value: f64,
     pub unit: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
     pub version: u64,
@@ -23,7 +23,7 @@ pub struct Configuration {
     pub defaults: Defaults,
 }
 
-#[derive(Serialize, Deserialize, Debug, New)]
+#[derive(Clone, Serialize, Deserialize, Debug, New)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderConfiguration {
     #[required]
@@ -72,14 +72,14 @@ pub struct FolderConfiguration {
     pub xattr_filter: XattrFilter,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum FilesystemType {
     Basic,
     Fake,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum FolderType {
     SendReceive,
@@ -88,7 +88,7 @@ pub enum FolderType {
     ReceiveEncrypted,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderDeviceConfiguration {
     #[serde(rename = "deviceID")]
@@ -97,7 +97,7 @@ pub struct FolderDeviceConfiguration {
     pub encryption_password: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct VersioningConfiguration {
     #[serde(rename = "type")]
@@ -108,7 +108,7 @@ pub struct VersioningConfiguration {
     pub fs_type: FilesystemType,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum PullOrder {
     Random,
@@ -119,7 +119,7 @@ pub enum PullOrder {
     NewestFirst,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum BlockPullOrder {
     Standard,
@@ -127,7 +127,7 @@ pub enum BlockPullOrder {
     InOrder,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum CopyRangeMethod {
     Standard,
@@ -140,7 +140,7 @@ pub enum CopyRangeMethod {
     All,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct XattrFilter {
     pub entries: Vec<String>,
@@ -148,7 +148,7 @@ pub struct XattrFilter {
     pub max_total_size: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, New)]
+#[derive(Clone, Serialize, Deserialize, Debug, New)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceConfiguration {
     #[required]
@@ -176,7 +176,7 @@ pub struct DeviceConfiguration {
     pub num_connections: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum Compression {
     Metadata,
@@ -184,7 +184,7 @@ pub enum Compression {
     Never,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ObservedFolder {
     pub time: chrono::DateTime<chrono::Utc>,
@@ -192,7 +192,7 @@ pub struct ObservedFolder {
     pub label: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct GuiConfiguration {
     pub enabled: bool,
@@ -213,7 +213,7 @@ pub struct GuiConfiguration {
     pub send_basic_auth_prompt: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum AuthMode {
     #[serde(rename = "static")]
     StaticAuth,
@@ -221,7 +221,7 @@ pub enum AuthMode {
     LDAP,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LDAPConfiguration {
     pub address: String,
@@ -234,7 +234,7 @@ pub struct LDAPConfiguration {
     pub search_filter: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum LDAPTransport {
     Plain,
@@ -243,7 +243,7 @@ pub enum LDAPTransport {
     StartTLS,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OptionsConfiguration {
     pub listen_address: Vec<String>,
@@ -311,7 +311,7 @@ pub struct OptionsConfiguration {
     pub connection_priority_upgrade_threshold: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum Tuning {
     Small,
@@ -319,7 +319,7 @@ pub enum Tuning {
     Auto,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ObservedDevice {
     pub time: chrono::DateTime<chrono::Utc>,
@@ -329,7 +329,7 @@ pub struct ObservedDevice {
     pub address: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Defaults {
     pub folder: FolderConfiguration,
@@ -337,7 +337,7 @@ pub struct Defaults {
     pub ignores: Ignores,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Ignores {
     pub lines: Vec<String>,
