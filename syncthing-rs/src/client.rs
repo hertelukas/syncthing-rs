@@ -935,7 +935,7 @@ mod tests {
         assert!(pending.devices.contains_key(&second_id));
 
         first_client
-            .delete_pending_device(&second_id)
+            .dismiss_pending_device(&second_id)
             .await
             .expect("could not delete pending device");
 
