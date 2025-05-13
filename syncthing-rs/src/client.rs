@@ -326,7 +326,7 @@ impl Client {
     /// Remove record about pending remote device with ID `device_id` which tried to connect.
     ///
     /// This is not permanent, use `ignore_device` instead.
-    pub async fn delete_pending_device(&self, device_id: &str) -> Result<()> {
+    pub async fn dismiss_pending_device(&self, device_id: &str) -> Result<()> {
         log::debug!("DELETE /cluster/pending/devices?device={device_id}");
         self.client
             .delete(format!(
@@ -345,7 +345,7 @@ impl Client {
     /// the folder will be removed as pending for all devices.
     ///
     /// This is not permanent, use `ignore_folder` instead.
-    pub async fn delete_pending_folder(
+    pub async fn dismiss_pending_folder(
         &self,
         folder_id: &str,
         device_id: Option<&str>,
@@ -354,7 +354,7 @@ impl Client {
             Some(device_id) => format!("?device={}", device_id),
             None => String::new(),
         };
-        log::debug!("DELETE /clusterpending/folders?folder={folder_id}{device_str}");
+        log::debug!("DELETE /cluster/pending/folders?folder={folder_id}{device_str}");
         self.client
             .delete(format!(
                 "{}/cluster/pending/folders?folder={}{}",
