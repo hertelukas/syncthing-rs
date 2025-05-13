@@ -351,7 +351,7 @@ impl Client {
         device_id: Option<&str>,
     ) -> Result<()> {
         let device_str = match device_id {
-            Some(device_id) => format!("?device={}", device_id),
+            Some(device_id) => format!("&device={}", device_id),
             None => String::new(),
         };
         log::debug!("DELETE /cluster/pending/folders?folder={folder_id}{device_str}");
