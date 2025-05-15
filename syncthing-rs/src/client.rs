@@ -516,7 +516,7 @@ mod tests {
         let event = rx.recv().await;
         assert!(event_mock.hits() > 0);
         assert!(event.is_ok());
-        assert_eq!(event.unwrap().ty, EventType::Starting {})
+        assert!(matches!(event.unwrap().ty, EventType::Starting { home: _ }));
     }
 
     #[tokio::test]

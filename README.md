@@ -19,8 +19,8 @@ Targeting the latest **stable** version of [Syncthing](https://syncthing.net).
 ## Roadmap
 - [X] Core configuration endpoint 
 - [X] Configuration data types
-- [ ] Partial updates to configuration
 - [X] Event subscription
-- [ ] Full event parsing
+- [x] Full event parsing
 - [X] Cluster endpoints and data types
+- [ ] Database endpoints
 - [ ] Support for multiple API versions
