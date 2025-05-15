@@ -852,16 +852,13 @@ mod tests {
         // Now wait until we get an added device event on the first container
         loop {
             let event = event_rx.recv().await.unwrap();
-            match event.ty {
-                EventType::PendingDevicesChanged {
-                    added: Some(added), ..
-                } => {
-                    if !added.is_empty() {
-                        break;
-                    }
+            if let EventType::PendingDevicesChanged {
+                added: Some(added), ..
+            } = event.ty
+            {
+                if !added.is_empty() {
+                    break;
                 }
-                // Skip other events
-                _ => {}
             }
         }
 
@@ -914,16 +911,13 @@ mod tests {
         // Now wait until we get an added device event on the first container
         loop {
             let event = event_rx.recv().await.unwrap();
-            match event.ty {
-                EventType::PendingDevicesChanged {
-                    added: Some(added), ..
-                } => {
-                    if !added.is_empty() {
-                        break;
-                    }
+            if let EventType::PendingDevicesChanged {
+                added: Some(added), ..
+            } = event.ty
+            {
+                if !added.is_empty() {
+                    break;
                 }
-                // Skip other events
-                _ => {}
             }
         }
 
@@ -942,17 +936,14 @@ mod tests {
         // Now wait until we get a removed device event in the first container
         loop {
             let event = event_rx.recv().await.unwrap();
-            match event.ty {
-                EventType::PendingDevicesChanged {
-                    removed: Some(removed),
-                    ..
-                } => {
-                    if !removed.is_empty() {
-                        break;
-                    }
+            if let EventType::PendingDevicesChanged {
+                removed: Some(removed),
+                ..
+            } = event.ty
+            {
+                if !removed.is_empty() {
+                    break;
                 }
-                // Skip other events
-                _ => {}
             }
         }
 
