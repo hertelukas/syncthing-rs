@@ -34,8 +34,8 @@ pub struct PendingFolder {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PendingFolderOfferer {
-    time: chrono::DateTime<Utc>,
+    pub time: chrono::DateTime<Utc>,
     pub label: String,
-    receive_encrypted: bool,
-    remote_encrypted: bool,
+    pub receive_encrypted: bool,
+    pub remote_encrypted: bool,
 }
