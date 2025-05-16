@@ -68,7 +68,7 @@ pub enum EventType {
     Failure(String),
     #[serde(rename_all = "camelCase")]
     FolderCompletion {
-        completion: u64,
+        completion: f64,
         device: String,
         folder: String,
         global_bytes: u64,
@@ -124,8 +124,8 @@ pub enum EventType {
     },
     ListenAddressesChanged {
         address: ListenAddressChanged,
-        wan: Vec<ListenAddressChanged>,
-        lan: Vec<ListenAddressChanged>,
+        wan: Option<Vec<ListenAddressChanged>>,
+        lan: Option<Vec<ListenAddressChanged>>,
     },
     LocalChangeDetected {
         action: String,
@@ -218,7 +218,7 @@ pub struct FolderError {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderSummary {
-    pub error: i64,
+    pub errors: i64,
     pub global_files: i64,
     pub global_directories: i64,
     pub global_symlinks: i64,
@@ -247,8 +247,9 @@ pub struct FolderSummary {
     pub in_sync_bytes: i64,
     pub state: String,
     pub state_changed: chrono::DateTime<chrono::Utc>,
+    pub error: String,
     pub sequence: i64,
-    pub remote_seuquence: HashMap<String, i64>,
+    pub remote_sequence: HashMap<String, i64>,
     pub ignore_patterns: bool,
     pub watch_error: String,
 }
