@@ -7,6 +7,7 @@ use crate::{
             NewFolderConfiguration,
         },
         events::Event,
+        system::Connections,
     },
 };
 use reqwest::{StatusCode, header};
@@ -94,6 +95,19 @@ impl Client {
     /// in the configuration file under `configuration/gui/apikey`.
     pub fn builder(api_key: impl Into<String>) -> ClientBuilder {
         ClientBuilder::new(api_key)
+    }
+
+    /// Gets all the connections
+    pub async fn get_connections(&self) -> Result<Connections> {
+        log::debug!("GET /system/connections");
+        Ok(self
+            .client
+            .get(format!("{}/system/connections", self.base_url))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 
     /// Returns `()` if the syncthing API can be reached.
@@ -981,5 +995,85 @@ mod tests {
             .get_default_folder()
             .await
             .expect("could not get default folder");
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_system_connections(
+        #[future]
+        #[from(syncthing_setup)]
+        first: (ContainerAsync<GenericImage>, Client),
+        #[future]
+        #[from(syncthing_setup)]
+        second: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_first_container, first_client) = first.await;
+        let (_second_container, second_client) = second.await;
+
+        let first_id = first_client
+            .get_id()
+            .await
+            .expect("could not get id of first container");
+        let second_id = second_client
+            .get_id()
+            .await
+            .expect("could not get id of second container");
+
+        // First starts waiting for the event
+        let (event_tx, mut event_rx) = broadcast::channel(10);
+        let first_client_handle = first_client.clone();
+        tokio::spawn(async move {
+            first_client_handle
+                .get_events(event_tx, true)
+                .await
+                .unwrap();
+        });
+
+        // Add the first device to the second
+        second_client
+            .add_device(NewDeviceConfiguration::new(first_id))
+            .await
+            .expect("could not add device");
+
+        // Now wait until we get an added device event on the first container
+        loop {
+            let event = event_rx.recv().await.unwrap();
+            if let EventType::PendingDevicesChanged {
+                added: Some(added), ..
+            } = event.ty
+            {
+                if !added.is_empty() {
+                    break;
+                }
+            }
+        }
+
+        // Check that this device is the correct one
+        let pending = first_client
+            .get_pending_devices()
+            .await
+            .expect("could not get pending devices");
+        assert!(pending.devices.contains_key(&second_id));
+
+        // First client accepts the device
+        first_client
+            .add_device(NewDeviceConfiguration::new(second_id.clone()))
+            .await
+            .expect("could not add device");
+
+        let first_connections = first_client
+            .get_connections()
+            .await
+            .expect("could not get connections");
+
+        assert_eq!(first_connections.connections.len(), 1);
+        assert!(first_connections.connections.contains_key(&second_id));
+        assert!(
+            !first_connections
+                .connections
+                .get(&second_id)
+                .unwrap()
+                .paused
+        );
     }
 }
