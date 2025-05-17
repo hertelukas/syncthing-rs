@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Completion {
-    completion: f64,
-    global_bytes: i64,
-    need_bytes: i64,
-    global_items: i64,
-    need_items: i64,
-    need_deletes: i64,
-    remote_state: String,
-    sequence: i64,
+    pub completion: f64,
+    pub global_bytes: i64,
+    pub need_bytes: i64,
+    pub global_items: i64,
+    pub need_items: i64,
+    pub need_deletes: i64,
+    pub remote_state: String,
+    pub sequence: i64,
 }
