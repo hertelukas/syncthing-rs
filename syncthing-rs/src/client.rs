@@ -259,6 +259,17 @@ impl Client {
         }
     }
 
+    /// Deletes the folder with the ID `folder_id`.
+    pub async fn delete_folder(&self, folder_id: &str) -> Result<()> {
+        log::debug!("DELETE /config/folders/{}", folder_id);
+        self.client
+            .delete(format!("{}/config/folders/{}", self.base_url, folder_id))
+            .send()
+            .await?
+            .error_for_status()?;
+        Ok(())
+    }
+
     /// Posts a device. If the device already exists, it is replaced,
     /// otherwise a new one is added.
     ///
@@ -308,6 +319,17 @@ impl Client {
         } else {
             Ok(response.error_for_status()?.json().await?)
         }
+    }
+
+    /// Deletes the device with the ID `device_id`.
+    pub async fn delete_device(&self, device_id: &str) -> Result<()> {
+        log::debug!("DELETE /config/devices/{}", device_id);
+        self.client
+            .delete(format!("{}/config/devices/{}", self.base_url, device_id))
+            .send()
+            .await?
+            .error_for_status()?;
+        Ok(())
     }
 
     /// Gets a list of all pending remote devices which have tried to connect but
@@ -1232,5 +1254,90 @@ mod tests {
             .get_completion(Some(folder_id), None)
             .await
             .expect("could not get completion for folder");
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_delete_folder(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder = NewFolderConfiguration::new(folder_id.to_string(), path.to_string());
+
+        client
+            .post_folder(folder)
+            .await
+            .expect("could not post folder");
+
+        let api_folder = client
+            .get_folder(folder_id)
+            .await
+            .expect("could not get folder");
+
+        let num_folders = client
+            .get_configuration()
+            .await
+            .expect("could not get config")
+            .folders
+            .len();
+
+        assert_eq!(&api_folder.id, folder_id);
+        assert_eq!(&api_folder.path, path);
+
+        client
+            .delete_folder(folder_id)
+            .await
+            .expect("could not delete folder");
+
+        let config = client
+            .get_configuration()
+            .await
+            .expect("could not get config");
+
+        assert_eq!(config.folders.len(), num_folders - 1);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_delete_device(
+        #[future] syncthing_setup: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_container, client) = syncthing_setup.await;
+
+        let device = NewDeviceConfiguration::new(DEVICE_ID.to_string());
+
+        client
+            .post_device(device)
+            .await
+            .expect("could not post device");
+
+        let api_device = client
+            .get_device(DEVICE_ID)
+            .await
+            .expect("could not get device");
+
+        let num_devices = client
+            .get_configuration()
+            .await
+            .expect("could not get config")
+            .devices
+            .len();
+
+        assert_eq!(&api_device.device_id, DEVICE_ID);
+
+        client
+            .delete_device(DEVICE_ID)
+            .await
+            .expect("could not delete folder");
+
+        let config = client
+            .get_configuration()
+            .await
+            .expect("could not get config");
+
+        assert_eq!(config.devices.len(), num_devices - 1);
     }
 }
