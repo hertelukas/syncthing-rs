@@ -54,7 +54,7 @@ pub enum EventType {
         addrs: Vec<String>,
         device: String,
     },
-    DevicePause {
+    DevicePaused {
         device: String,
     },
     DeviceRejected {}, // Deprecated
