@@ -6,6 +6,7 @@ use crate::{
             Configuration, DeviceConfiguration, FolderConfiguration, NewDeviceConfiguration,
             NewFolderConfiguration,
         },
+        db::Completion,
         events::Event,
         system::Connections,
     },
@@ -408,11 +409,59 @@ impl Client {
             .json()
             .await?)
     }
+
+    /// Calculates the data synchronization completion percentage and counts.
+    ///
+    /// Returns the completion percentage (0 to 100), total bytes, and total items.
+    ///
+    /// # Arguments
+    ///
+    /// * `folder_id` - The ID of the folder to calculate completion for.
+    ///   `None` calculates the aggregate completion across all folders.
+    /// * `device_id` - The ID of the device to calculate completion for.
+    ///   `None` calculates the aggregate completion across all devices.
+    ///   If `device_id` is specified but `folder_id` is `None`,
+    ///   completion is calculated for all folders *shared with that device*.
+    pub async fn get_completion(
+        &self,
+        folder_id: Option<&str>,
+        device_id: Option<&str>,
+    ) -> Result<Completion> {
+        let folder_str = match folder_id {
+            Some(folder_id) => format!("folder={}", folder_id),
+            None => String::new(),
+        };
+        let device_str = match device_id {
+            Some(device_id) => format!("device={}", device_id),
+            None => String::new(),
+        };
+        let questionmark = if folder_id.is_some() || device_id.is_some() {
+            "?"
+        } else {
+            ""
+        };
+        let and = if folder_id.is_some() && device_id.is_some() {
+            "&"
+        } else {
+            ""
+        };
+        let query = format!("{}{}{}{}", questionmark, folder_str, and, device_str);
+        log::debug!("GET /db/completion{}", query);
+
+        Ok(self
+            .client
+            .get(format!("{}/db/completion{}", self.base_url, query))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::types::events::EventType;
+    use crate::types::{config::FolderDeviceConfiguration, events::EventType};
 
     use super::*;
 
@@ -1075,5 +1124,113 @@ mod tests {
                 .unwrap()
                 .paused
         );
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn container_test_completion(
+        #[future]
+        #[from(syncthing_setup)]
+        first: (ContainerAsync<GenericImage>, Client),
+        #[future]
+        #[from(syncthing_setup)]
+        second: (ContainerAsync<GenericImage>, Client),
+    ) {
+        let (_first_container, first_client) = first.await;
+        let (_second_container, second_client) = second.await;
+
+        let first_id = first_client
+            .get_id()
+            .await
+            .expect("could not get id of first container");
+        let second_id = second_client
+            .get_id()
+            .await
+            .expect("could not get id of second container");
+
+        // First starts waiting for the event
+        let (event_tx, mut event_rx) = broadcast::channel(10);
+        let first_client_handle = first_client.clone();
+        tokio::spawn(async move {
+            first_client_handle
+                .get_events(event_tx, true)
+                .await
+                .unwrap();
+        });
+
+        // Add the first device to the second
+        second_client
+            .add_device(NewDeviceConfiguration::new(first_id.clone()))
+            .await
+            .expect("could not add device");
+
+        // Now wait until we get an added device event on the first container
+        loop {
+            let event = event_rx.recv().await.unwrap();
+            if let EventType::PendingDevicesChanged {
+                added: Some(added), ..
+            } = event.ty
+            {
+                if !added.is_empty() {
+                    break;
+                }
+            }
+        }
+
+        // Check that this device is the correct one
+        let pending = first_client
+            .get_pending_devices()
+            .await
+            .expect("could not get pending devices");
+        assert!(pending.devices.contains_key(&second_id));
+
+        // First client accepts the device
+        first_client
+            .add_device(NewDeviceConfiguration::new(second_id.clone()))
+            .await
+            .expect("could not add device");
+
+        // Share a folder
+        let folder_id = "this-is-a-new-folder";
+        let path = "/tmp";
+
+        let folder_on_first = NewFolderConfiguration::new(folder_id.to_string(), path.to_string())
+            .devices(vec![FolderDeviceConfiguration {
+                device_id: second_id.clone(),
+                introduced_by: String::new(),
+                encryption_password: String::new(),
+            }]);
+
+        let folder_on_second = NewFolderConfiguration::new(folder_id.to_string(), path.to_string())
+            .devices(vec![FolderDeviceConfiguration {
+                device_id: first_id,
+                introduced_by: String::new(),
+                encryption_password: String::new(),
+            }]);
+
+        first_client
+            .post_folder(folder_on_first)
+            .await
+            .expect("could not post folder on first");
+
+        second_client
+            .post_folder(folder_on_second)
+            .await
+            .expect("could not post folder on second");
+
+        let _total_completion = first_client
+            .get_completion(None, None)
+            .await
+            .expect("could not get completion");
+
+        let _device_completion = first_client
+            .get_completion(None, Some(&second_id))
+            .await
+            .expect("could not get completion for device");
+
+        let _folder_completion = first_client
+            .get_completion(Some(folder_id), None)
+            .await
+            .expect("could not get completion for folder");
     }
 }
