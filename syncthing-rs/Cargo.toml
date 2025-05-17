@@ -1,6 +1,6 @@
 [package]
 name = "syncthing-rs"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "Rust wrapper around the Syncthing API"
@@ -13,7 +13,7 @@ chrono = { version = "0.4.41", features = ["serde"] }
 log = "0.4.27"
 reqwest = { version = "0.12.15", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
-syncthing-macros = { version = "0.1.0-alpha.1", path = "../syncthing-macros" }
+syncthing-macros = { version = "0.1.0-alpha.2", path = "../syncthing-macros" }
 thiserror = "2.0.12"
 tokio = { version = "1.44.2", features = ["full"] }
 
