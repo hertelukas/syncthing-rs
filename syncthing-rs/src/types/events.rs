@@ -93,9 +93,9 @@ pub enum EventType {
         label: String,
     },
     FolderScanProgress {
-        total: u32,
-        rate: u32,
-        current: u32,
+        total: u64,
+        rate: u64,
+        current: u64,
         folder: String,
     },
     FolderSummary {
