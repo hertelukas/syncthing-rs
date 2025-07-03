@@ -189,9 +189,9 @@ pub enum EventType {
     },
     StateChanged {
         folder: String,
-        from: String,
+        from: StateChangedState,
         duration: Option<f64>,
-        to: String,
+        to: StateChangedState,
     },
 }
 
@@ -332,6 +332,21 @@ impl From<AddedPendingDeviceChanged> for NewDeviceConfiguration {
     fn from(value: AddedPendingDeviceChanged) -> Self {
         Self::new(value.device_id).name(value.name)
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub enum StateChangedState {
+    Idle,
+    Scanning,
+    ScanWaiting,
+    SyncWaiting,
+    SyncPreparing,
+    Syncing,
+    Cleaning,
+    CleanWaiting,
+    Error,
+    Unknown,
 }
 
 #[cfg(test)]
