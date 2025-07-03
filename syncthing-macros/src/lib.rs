@@ -68,7 +68,7 @@ fn get_rename_all(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
     let ident = &input.ident;
-    let builder_ident = syn::Ident::new(&format!("New{}", ident), ident.span());
+    let builder_ident = syn::Ident::new(&format!("New{ident}"), ident.span());
 
     let fields = if let syn::Data::Struct(syn::DataStruct {
         fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
@@ -119,7 +119,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let funcs = fields.clone().map(|field| {
         let name = &field.ident;
         if let Some(name) = name {
-            let getter = format!("get_{}", name);
+            let getter = format!("get_{name}");
             let getter = proc_macro2::Ident::new(&getter, name.span());
             let ty = &field.ty;
             if !is_required(&field.attrs) {

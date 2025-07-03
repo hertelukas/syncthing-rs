@@ -213,7 +213,7 @@ impl Client {
     /// should fail if a folder with the same ID already exists.
     pub async fn post_folder(&self, folder: impl Into<NewFolderConfiguration>) -> Result<()> {
         let folder = folder.into();
-        log::debug!("POST /config/folders {:?}", folder);
+        log::debug!("POST /config/folders {folder:?}");
         self.client
             .post(format!("{}/config/folders", self.base_url))
             .json(&folder)
@@ -244,7 +244,7 @@ impl Client {
     /// returns a [`UnknownFolderError`](crate::error::Error::UnknownFolderError)
     /// if no folder with `folder_id` exists.
     pub async fn get_folder(&self, folder_id: &str) -> Result<FolderConfiguration> {
-        log::debug!("GET /config/folders/{}", folder_id);
+        log::debug!("GET /config/folders/{folder_id}");
         let response = self
             .client
             .get(format!("{}/config/folders/{}", self.base_url, folder_id))
@@ -261,7 +261,7 @@ impl Client {
 
     /// Deletes the folder with the ID `folder_id`.
     pub async fn delete_folder(&self, folder_id: &str) -> Result<()> {
-        log::debug!("DELETE /config/folders/{}", folder_id);
+        log::debug!("DELETE /config/folders/{folder_id}");
         self.client
             .delete(format!("{}/config/folders/{}", self.base_url, folder_id))
             .send()
@@ -277,7 +277,7 @@ impl Client {
     /// should fail if a device with the same ID already exists.
     pub async fn post_device(&self, device: impl Into<NewDeviceConfiguration>) -> Result<()> {
         let device = device.into();
-        log::debug!("POST /config/devices {:?}", device);
+        log::debug!("POST /config/devices {device:?}");
         self.client
             .post(format!("{}/config/devices", self.base_url))
             .json(&device)
@@ -306,7 +306,7 @@ impl Client {
 
     /// Gets the configuration for the device with the ID `device_id`.
     pub async fn get_device(&self, device_id: &str) -> Result<DeviceConfiguration> {
-        log::debug!("GET /config/devices/{}", device_id);
+        log::debug!("GET /config/devices/{device_id}");
         let response = self
             .client
             .get(format!("{}/config/devices/{}", self.base_url, device_id))
@@ -323,7 +323,7 @@ impl Client {
 
     /// Deletes the device with the ID `device_id`.
     pub async fn delete_device(&self, device_id: &str) -> Result<()> {
-        log::debug!("DELETE /config/devices/{}", device_id);
+        log::debug!("DELETE /config/devices/{device_id}");
         self.client
             .delete(format!("{}/config/devices/{}", self.base_url, device_id))
             .send()
@@ -388,7 +388,7 @@ impl Client {
         device_id: Option<&str>,
     ) -> Result<()> {
         let device_str = match device_id {
-            Some(device_id) => format!("&device={}", device_id),
+            Some(device_id) => format!("&device={device_id}"),
             None => String::new(),
         };
         log::debug!("DELETE /cluster/pending/folders?folder={folder_id}{device_str}");
@@ -450,11 +450,11 @@ impl Client {
         device_id: Option<&str>,
     ) -> Result<Completion> {
         let folder_str = match folder_id {
-            Some(folder_id) => format!("folder={}", folder_id),
+            Some(folder_id) => format!("folder={folder_id}"),
             None => String::new(),
         };
         let device_str = match device_id {
-            Some(device_id) => format!("device={}", device_id),
+            Some(device_id) => format!("device={device_id}"),
             None => String::new(),
         };
         let questionmark = if folder_id.is_some() || device_id.is_some() {
@@ -467,8 +467,8 @@ impl Client {
         } else {
             ""
         };
-        let query = format!("{}{}{}{}", questionmark, folder_str, and, device_str);
-        log::debug!("GET /db/completion{}", query);
+        let query = format!("{questionmark}{folder_str}{and}{device_str}");
+        log::debug!("GET /db/completion{query}");
 
         Ok(self
             .client
