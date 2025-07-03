@@ -2298,7 +2298,7 @@ dependencies = [
 
 [[package]]
 name = "syncthing-macros"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2310,7 +2310,7 @@ dependencies = [
 
 [[package]]
 name = "syncthing-rs"
-version = "0.1.0-alpha.3"
+version = "0.1.0-alpha.4"
 dependencies = [
  "chrono",
  "httpmock",
