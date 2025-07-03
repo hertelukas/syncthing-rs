@@ -274,6 +274,7 @@ pub struct FileDownloadProgress {
     pub pulling: u64,
     pub copied_from_original: u64,
     pub reused: u64,
+    pub copied_from_original_shifted: u64,
     pub copied_from_elsewhere: u64,
     pub pulled: u64,
     pub bytes_total: u64,
