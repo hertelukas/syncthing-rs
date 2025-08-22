@@ -14,20 +14,21 @@ fn get_rename(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> {
                 meta: syn::Meta::List(syn::MetaList { tokens, .. }),
                 ..
             } = attr
+        {
+            let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
+            if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first()
+                && *ident == "rename"
+                && let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2)
             {
-                let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
-                if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first()
-                    && *ident == "rename"
-                        && let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2) {
-                            // Convert the literal into a string like "\"bar\""
-                            let value = name.to_string();
+                // Convert the literal into a string like "\"bar\""
+                let value = name.to_string();
 
-                            // Parse that string back into a syn::Lit (which handles quotes properly)
-                            if let Ok(lit) = syn::parse_str::<syn::LitStr>(&value) {
-                                return Some(quote! { #[serde(rename = #lit)] });
-                            }
-                        }
+                // Parse that string back into a syn::Lit (which handles quotes properly)
+                if let Ok(lit) = syn::parse_str::<syn::LitStr>(&value) {
+                    return Some(quote! { #[serde(rename = #lit)] });
+                }
             }
+        }
     }
     None
 }
@@ -40,20 +41,21 @@ fn get_rename_all(attrs: &[syn::Attribute]) -> Option<proc_macro2::TokenStream> 
                 meta: syn::Meta::List(syn::MetaList { tokens, .. }),
                 ..
             } = attr
+        {
+            let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
+            if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first()
+                && *ident == "rename_all"
+                && let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2)
             {
-                let tokens: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
-                if let Some(proc_macro2::TokenTree::Ident(ident)) = tokens.first()
-                    && *ident == "rename_all"
-                        && let Some(proc_macro2::TokenTree::Literal(name)) = tokens.get(2) {
-                            // Convert the literal into a string like "\"bar\""
-                            let value = name.to_string();
+                // Convert the literal into a string like "\"bar\""
+                let value = name.to_string();
 
-                            // Parse that string back into a syn::Lit (which handles quotes properly)
-                            if let Ok(lit) = syn::parse_str::<syn::LitStr>(&value) {
-                                return Some(quote! { #[serde(rename_all = #lit)] });
-                            }
-                        }
+                // Parse that string back into a syn::Lit (which handles quotes properly)
+                if let Ok(lit) = syn::parse_str::<syn::LitStr>(&value) {
+                    return Some(quote! { #[serde(rename_all = #lit)] });
+                }
             }
+        }
     }
     None
 }
