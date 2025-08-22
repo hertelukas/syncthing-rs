@@ -505,7 +505,7 @@ mod tests {
         let api_key = "foobar";
         let container = GenericImage::new("syncthing/syncthing", "latest")
             .with_exposed_port(Tcp(8384))
-            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening "))
             .with_env_var("STGUIAPIKEY", api_key)
             .start()
             .await
@@ -610,7 +610,7 @@ mod tests {
         // as the health endpoint should work anyway
         let container = GenericImage::new("syncthing/syncthing", "latest")
             .with_exposed_port(Tcp(8384))
-            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening "))
             .start()
             .await
             .expect("failed to start syncthing container");
@@ -637,7 +637,7 @@ mod tests {
         // as the id endpoint should work anyway
         let container = GenericImage::new("syncthing/syncthing", "latest")
             .with_exposed_port(Tcp(8384))
-            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening on "))
+            .with_wait_for(WaitFor::message_on_stdout("GUI and API listening "))
             .start()
             .await
             .expect("failed to start syncthing container");
