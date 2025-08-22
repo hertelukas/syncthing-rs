@@ -940,11 +940,9 @@ mod tests {
             if let EventType::PendingDevicesChanged {
                 added: Some(added), ..
             } = event.ty
-            {
-                if !added.is_empty() {
+                && !added.is_empty() {
                     break;
                 }
-            }
         }
 
         // Check that this device is the correct one
@@ -999,11 +997,9 @@ mod tests {
             if let EventType::PendingDevicesChanged {
                 added: Some(added), ..
             } = event.ty
-            {
-                if !added.is_empty() {
+                && !added.is_empty() {
                     break;
                 }
-            }
         }
 
         // Check that this device is the correct one
@@ -1025,11 +1021,9 @@ mod tests {
                 removed: Some(removed),
                 ..
             } = event.ty
-            {
-                if !removed.is_empty() {
+                && !removed.is_empty() {
                     break;
                 }
-            }
         }
 
         // Check that the device is no longer there
@@ -1112,11 +1106,9 @@ mod tests {
             if let EventType::PendingDevicesChanged {
                 added: Some(added), ..
             } = event.ty
-            {
-                if !added.is_empty() {
+                && !added.is_empty() {
                     break;
                 }
-            }
         }
 
         // Check that this device is the correct one
@@ -1192,11 +1184,9 @@ mod tests {
             if let EventType::PendingDevicesChanged {
                 added: Some(added), ..
             } = event.ty
-            {
-                if !added.is_empty() {
+                && !added.is_empty() {
                     break;
                 }
-            }
         }
 
         // Check that this device is the correct one
