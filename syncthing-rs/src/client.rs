@@ -599,7 +599,7 @@ mod tests {
         });
 
         let event = rx.recv().await;
-        assert!(event_mock.hits() > 0);
+        assert!(event_mock.calls() > 0);
         assert!(event.is_ok());
         assert!(matches!(event.unwrap().ty, EventType::Starting { home: _ }));
     }
