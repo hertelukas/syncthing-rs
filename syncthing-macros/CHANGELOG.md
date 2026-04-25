@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.3](https://github.com/hertelukas/syncthing-rs/compare/syncthing-macros-v0.1.0-alpha.2...syncthing-macros-v0.1.0-alpha.3) - 2026-04-25
+
+### Fixed
+
+- collapse nested if blocks (clippy)
+
+### Other
+
+- *(deps)* update dependencies
+- *(macros)* cargo fmt
+- cargo clippy
+
 ## [0.1.0-alpha.2](https://github.com/hertelukas/syncthing-rs/compare/syncthing-macros-v0.1.0-alpha.1...syncthing-macros-v0.1.0-alpha.2) - 2025-05-18
 
 ### Added
