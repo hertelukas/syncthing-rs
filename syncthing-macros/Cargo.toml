@@ -11,11 +11,11 @@ readme = "README.md"
 proc-macro = true
 
 [dependencies]
-quote = "1.0.39"
-syn = { version = "2.0.99", features = ["full", "visit-mut", "parsing", "extra-traits"] }
+quote = "1.0.45"
+syn = { version = "2.0.117", features = ["full", "visit-mut", "parsing", "extra-traits"] }
 proc-macro2 = "1.0"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 
 [dev-dependencies]
-trybuild = "1.0.104"
+trybuild = "1.0.116"
 serde_json = { version = "1.0" }
