@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.4](https://github.com/hertelukas/syncthing-rs/compare/syncthing-rs-v0.1.0-alpha.3...syncthing-rs-v0.1.0-alpha.4) - 2026-04-25
+
+### Added
+
+- *(events)* parse state changes as enum
+
+### Fixed
+
+- *(events)* typo in file download progress
+
+### Other
+
+- *(deps)* upgrade dependencies
+- *(deps)* update dependencies
+- *(tests)* cargo fmt
+- *(tests)* cargo clippy
+- update compatibility for syncthing 2.0
+- cargo clippy
+- *(events)* add missing download progress field
+
 ## [0.1.0-alpha.3](https://github.com/hertelukas/syncthing-rs/compare/syncthing-rs-v0.1.0-alpha.2...syncthing-rs-v0.1.0-alpha.3) - 2025-05-18
 
 ### Added
